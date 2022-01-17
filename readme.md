@@ -37,3 +37,14 @@
 5) Override all lights off until midnight - Triple press bottom button.
    Double flash loop then Yellow LED
 
+### How?
+- Time-of-day automation exisited already.  Motion triggered variable lighting scenarios based on time of day, frequency of occupancy.  Not really needed for this repo - just here as an example of the automation that is being turned off.
+
+- Motion override automation - listens for MQTT published from the devices to a topic for the kitchen automation ( stat/kitchen/automation/status ).  Various actions taken based on the multi-press value sent from the switch.  Publish back to a shared topic ( stat/kitchen/automation/ledstate ) to set the color of the LED.
+
+- LEDSTATE is actually sending bit values for LED1 and LED2.  This is decoded with modulo. 0 = RED, 1 = YELLOW, 2 = OFF, 3 = GREEN
+
+- The Tasmota rules use a counter and a brute force LED sequencing routine to flash the LEDS.  Originally this was going to happen using HA automation but the reaction rate was very slow (Tasmota delay - not MQTT).  So this kludge was an alternative while other options are explored.
+
+- This requires that MQTT Subscribe be compiled into the Tasmota bin.  Will not work without it.  
+
