@@ -1,22 +1,24 @@
-Situation:
--3 Linkind switches in a devgroup.  All three controlling the kitchen can lights
--Kitchen cans (and other lights) are in a time-of-day based motion detection routine.
--There are times that I want all the lights on and for them to stay on for some period of time even if occupancy goes to vacant in the room.
+## LINKIND Switch - Blinking LEDs and setting LED state from Home Assistant
+
+### Situation:
+- 3 Linkind switches in a devgroup.  All three controlling the kitchen can lights.
+- Kitchen cans (and other lights) are in a time-of-day based motion detection routine.
+- There are times that I want all the lights on and for them to stay on for some period of time even if occupancy goes to vacant in the room.
 - Would like visual confirmation on the switch that the action requested has been recorded and is in force.
 
-Tools:
--LEDs 1 & 2 decoupled from power state.  LEDs controlled with rules
--Devgroup for 3 switches controlling power state - AFAIK devgroup doesn't control LEDs... (standing by to be corrected).
--Custom compile to support MQTT subscribe on the switches.
--HA Automation to manage timing and override of occupancy motion detection routine (yes, yes ... NR to the rescue! ;-)
+### Tools:
+- LEDs 1 & 2 decoupled from power state.  LEDs controlled with rules
+- Devgroup for 3 switches controlling power state - AFAIK devgroup doesn't control LEDs... (standing by to be corrected).
+- Custom compile to support MQTT subscribe on the switches.
+- HA Automation to manage timing and override of occupancy motion detection routine (yes, yes ... NR to the rescue! ;-)
 
-Solution:
--Rules manage LED state
--Rules do looping mechanism and a "bit flip" to flash lights
--Subscribe used to remotely set the LED value from HA
--Publish on switch used to send switch multi-press info to HA
+### Solution:
+- Rules manage LED state
+- Rules do looping mechanism and a "bit flip" to flash lights
+- Subscribe used to remotely set the LED value from HA
+- Publish on switch used to send switch multi-press info to HA
 
-Working scenarios
+### Working scenarios
 1) Power on - LED Green
    Power off - LED Ren
 
