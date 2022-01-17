@@ -1,0 +1,144 @@
+alias: Kitchen Light Automation - Override
+description: ''
+trigger:
+  - platform: mqtt
+    topic: stat/kitchen/automation/status
+    id: automation-on-ignore-midnight
+    payload: '22.0'
+    value_template: '{{ value_json.Button }}'
+  - platform: mqtt
+    topic: stat/kitchen/automation/status
+    id: automation-on-ignore-30min
+    payload: '21.0'
+    value_template: '{{ value_json.Button }}'
+  - platform: mqtt
+    id: automation-reset
+    topic: stat/kitchen/automation/status
+    payload: '11.0'
+    value_template: '{{ value_json.Button }}'
+  - platform: mqtt
+    topic: stat/kitchen/automation/status
+    id: automation-off-ignore-midnight
+    payload: '12.0'
+    value_template: '{{ value_json.Button }}'
+condition: []
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: automation-on-ignore-30min
+        sequence:
+          - service: counter.increment
+            target:
+              entity_id: counter.kitchen_hold_counter
+          - service: scene.turn_on
+            target:
+              entity_id: scene.kitchen_all_on
+          - service: automation.turn_off
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: 3
+              milliseconds: 0
+          - service: mqtt.publish
+            data:
+              topic: stat/kitchen/automation/ledstate
+              payload: '1'
+          - delay: '{{ states(''counter.kitchen_hold_counter'') | int * 1800 }}'
+          - service: counter.reset
+            target:
+              entity_id: counter.kitchen_hold_counter
+          - service: automation.turn_on
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+          - service: mqtt.publish
+            data:
+              topic: stat/kitchen/automation/ledstate
+              payload: '3'
+          - service: automation.trigger
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+            data:
+              skip_condition: false
+      - conditions:
+          - condition: trigger
+            id: automation-on-ignore-midnight
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: scene.kitchen_all_on
+          - service: automation.turn_off
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+          - delay: 3
+          - service: mqtt.publish
+            data:
+              topic: stat/kitchen/automation/ledstate
+              payload: '1'
+          - wait_for_trigger:
+              - platform: time
+                at: '23:59:00'
+          - service: automation.turn_on
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+          - service: mqtt.publish
+            data:
+              topic: stat/kitchen/automation/ledstate
+              payload: '3'
+          - service: automation.trigger
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+      - conditions:
+          - condition: trigger
+            id: automation-off-ignore-midnight
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: scene.kitchen_all_off
+          - service: automation.turn_off
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+          - delay: 3
+          - service: mqtt.publish
+            data:
+              topic: stat/kitchen/automation/ledstate
+              payload: '1'
+          - wait_for_trigger:
+              - platform: time
+                at: '23:59:00'
+          - service: counter.reset
+            target:
+              entity_id: counter.kitchen_hold_counter
+          - service: mqtt.publish
+            data:
+              topic: stat/kitchen/automation/ledstate
+              payload: '3'
+              retain: false
+          - service: automation.turn_on
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+          - service: automation.trigger
+            target:
+              entity_id: automation.kitchen_motion_lights_timeofday
+            data:
+              skip_condition: false
+    default:
+      - service: counter.reset
+        target:
+          entity_id: counter.kitchen_hold_counter
+      - delay: 3
+      - service: mqtt.publish
+        data:
+          topic: stat/kitchen/automation/ledstate
+          payload: '3'
+      - service: automation.turn_on
+        target:
+          entity_id: automation.kitchen_motion_lights_timeofday
+      - service: automation.trigger
+        target:
+          entity_id: automation.kitchen_motion_lights_timeofday
+        data:
+          skip_condition: false
+mode: restart
